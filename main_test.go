@@ -27,16 +27,3 @@ func TestIndexHandler(t *testing.T) {
 	}
 
 }
-
-func TestStaticHandler(t *testing.T) {
-
-	h := staticHandler()
-	r, _ := http.NewRequest("GET", "/static/nelson.gif", nil)
-	w := httptest.NewRecorder()
-
-	h.ServeHTTP(w, r)
-
-	if w.Code != http.StatusOK {
-		t.Errorf("got %v want 200", w.Code)
-	}
-}

@@ -28,18 +28,11 @@ func main() {
 	fmt.Printf("listening on port: %s\n", *port)
 
 	http.Handle("/", indexHandler())
-	http.Handle("/static/", staticHandler())
 	http.ListenAndServe(":"+*port, nil)
 }
 
 func indexHandler() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		http.Redirect(w, r, "/static/", http.StatusMovedPermanently)
-	})
-}
-
-func staticHandler() http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		http.ServeFile(w, r, r.URL.Path[1:])
+		fmt.Fprintf(w, "Nickr")
 	})
 }
