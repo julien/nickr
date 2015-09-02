@@ -7,6 +7,7 @@ func Cors(next http.Handler) http.Handler {
 
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		w.Header().Set("Access-Control-Allow-Headers", "X-Requested-With")
+		w.Header().Set("Access-Control-Allow-Methods", "GET,DELETE,PATCH,POST,PUT")
 		next.ServeHTTP(w, r)
 	})
 }
