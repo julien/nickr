@@ -1,1 +1,1 @@
-webapp: nickr
+web: nickr
