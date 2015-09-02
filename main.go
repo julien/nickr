@@ -4,11 +4,11 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
-	"sync"
 
 	"github.com/julien/nickr/utils"
 )
@@ -17,8 +17,7 @@ const file string = "data.json"
 
 var (
 	port       = flag.String("port", os.Getenv("PORT"), "http port")
-	characters map[string][]string
-	fileLock   sync.RWMutex
+	collection = utils.Collection{}
 )
 
 func init() {
@@ -30,143 +29,109 @@ func init() {
 func main() {
 	flag.Parse()
 
-	var err error
-	characters, err = loadData()
-	if err != nil {
-		log.Fatalf("Error: %v\n", err)
-	}
+	loadCollection()
 
 	fmt.Printf("Listening on port: %s\n", *port)
-	http.Handle("/", utils.Cors(characterHandler()))
+	http.Handle("/", utils.AddCORSHeaders(characterHandler()))
 	http.ListenAndServe(":"+*port, nil)
 }
 
-func indexHandler() http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintf(w, "Nickr")
-	})
+func loadCollection() error {
+	_, err := collection.FromJSON(file)
+	return err
 }
 
-func loadData() (map[string][]string, error) {
-	c := make(map[string][]string)
+func itemsToJSON(items []string) ([]byte, error) {
+	return json.Marshal(items)
+}
 
-	data, err := ioutil.ReadFile(file)
+func itemsFromBody(body io.Reader) ([]string, error) {
+	var err error
+	b, err := ioutil.ReadAll(body)
 	if err != nil {
 		return nil, err
 	}
 
-	err = json.Unmarshal(data, &c)
+	var s []string
+	err = json.Unmarshal(b, &s)
 	if err != nil {
 		return nil, err
 	}
-
-	return c, err
+	return s, nil
 }
 
-// TODO: GET       character
-// TODO: POST      character [nick1, nick2, nicnN]
-// TODO: PUT/PATCH character [nick1, nick2, nickN]
-// TODO: DELETE    character
+func addToCollection(key string, body io.Reader, w http.ResponseWriter) error {
+	items, err := itemsFromBody(body)
+	if err != nil {
+		return err
+	}
+
+	collection.Add(key, items)
+
+	if err := collection.Flush(file); err != nil {
+		return err
+	}
+
+	loadCollection()
+	return nil
+}
+
 func characterHandler() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-
-		// if r.Method == "GET" {
-		// 	http.Error(w, "Shit ...", http.StatusMethodNotAllowed)
-		// }
-
-		var err error
-
 		name := r.URL.Path[1:]
-		if ok := characters[name]; ok != nil {
-			fmt.Printf("Found it: %v\n", ok)
 
+		if name == "" {
+			w.Header().Set("Content-type", "text/html")
+			w.Write([]byte("<h1>NickR</h1>"))
+			return
+		}
+
+		if it := collection.Get(name); it != nil {
 			switch r.Method {
-			case "GET":
-				b, err := json.Marshal(ok)
-				if err != nil {
-					http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-				}
-				w.Header().Set("Content-Type", "application/json")
-				w.Write(b)
-
-			case "PATCH":
-				s, err := utils.ReadFromBody(r.Body)
-				if err != nil {
-					log.Fatal(err)
-				}
-				characters[name] = s
-				b, err := json.Marshal(characters[name])
-				if err != nil {
-					http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-				}
-				err = utils.Flush(file, characters, fileLock)
-				if err != nil {
-					log.Fatal("write error: %s\n", err)
-				}
-				characters, err = loadData()
-				if err != nil {
-					log.Fatal(err)
-				}
-				w.Header().Set("Content-Type", "application/json")
-				w.Write(b)
-
-			case "PUT":
-				s, err := utils.ReadFromBody(r.Body)
-				if err != nil {
-					log.Fatal(err)
-				}
-				characters[name] = utils.AddNewNicknames(ok, s)
-				b, err := json.Marshal(characters[name])
-				if err != nil {
-					http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-				}
-				err = utils.Flush(file, characters, fileLock)
-				if err != nil {
-					log.Fatal("write error: %s\n", err)
-				}
-				characters, err = loadData()
-				if err != nil {
-					log.Fatal(err)
-				}
-				w.Header().Set("Content-Type", "application/json")
-				w.Write(b)
 
 			case "DELETE":
-				delete(characters, name)
-				err = utils.Flush(file, characters, fileLock)
-				if err != nil {
-					log.Fatalf("write error: %s\n", err)
+				collection.Delete(name)
+				if err := collection.Flush(file); err != nil {
+					http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 				}
-				characters, err = loadData()
-				if err != nil {
-					log.Fatalf("Error: %v\n", err)
-				}
+				loadCollection()
 				w.WriteHeader(http.StatusNoContent)
-			}
-		} else {
-			if r.Method != "POST" {
-				http.Error(w, "Sorry we didn't find what you were looking for", http.StatusNotFound)
-			} else {
-				s, err := utils.ReadFromBody(r.Body)
-				if err != nil {
-					log.Fatal(err)
-				}
-				characters[name] = s
-				b, err := json.Marshal(characters[name])
+
+			case "GET":
+				res, err := itemsToJSON(it)
 				if err != nil {
 					http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 				}
-				err = utils.Flush(file, characters, fileLock)
-				if err != nil {
-					log.Fatal("write error: %s\n", err)
-				}
-				characters, err = loadData()
-				if err != nil {
-					log.Fatal(err)
-				}
 				w.Header().Set("Content-Type", "application/json")
-				w.Write(b)
+				w.Write(res)
+
+			case "PATCH":
+				items, err := itemsFromBody(r.Body)
+				if err != nil {
+					http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+				}
+				collection.Set(name, items)
+				if err := collection.Flush(file); err != nil {
+					http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+				}
+				loadCollection()
+				w.WriteHeader(http.StatusOK)
+
+			case "PUT":
+				if err := addToCollection(name, r.Body, w); err != nil {
+					log.Fatal(err)
+					http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+				}
+				w.WriteHeader(http.StatusOK)
 			}
+		} else if r.Method == "POST" {
+			if err := addToCollection(name, r.Body, w); err != nil {
+				log.Fatal(err)
+				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			}
+			w.WriteHeader(http.StatusCreated)
+		} else {
+			w.WriteHeader(http.StatusNotFound)
 		}
 
 	})

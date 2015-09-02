@@ -1,49 +1,17 @@
 {
-  "tonyElGordo": [
-    "Don Fabrione",
-    "El flautista de paquelín",
-    "Don Pin Pon",
-    "Diego Armando Donpinpona"
-  ],
-  "nedFlanders": [
-    "Chema el panadero",
-    "E.T",
-    "Ken",
-    "Jan Ulrich"
-  ],
-  "troyMcClure": [
-    "Francoise Gallardo",
-    "Jaime Lanister"
-  ],
-  "nelson": [
-    "RompeRalph",
-    "Bud Spencer"
-  ],
-  "rainerWolfcastle": [
-    "Techno Viking"
-  ],
-  "srBruns": [
-    "Condemor",
-    "Conde Brácula",
-    "Condemor"
-  ],
   "barney": [
     ""
+  ],
+  "duffman": [
+    "Poncio Pilato",
+    "Tintín",
+    "Raully",
+    "Espinete"
   ],
   "elAyudanteDeSantaClaus": [
     "Joselito",
     "50 Sombras de Gray",
     "Rantanplan"
-  ],
-  "selma": [
-    "Hembra Alpha"
-  ],
-  "rasca": [
-    "Cantinflas",
-    "Pepa"
-  ],
-  "pica": [
-    "Avelino"
   ],
   "gabbo": [
     "Nikki Lauda",
@@ -51,10 +19,45 @@
     "Raully",
     "Espinete"
   ],
-   "duffman": [
-    "Poncio Pilato",
-    "Tintín",
-    "Raully",
-    "Espinete"
+  "nedFlanders": [
+    "Chema el panadero",
+    "E.T",
+    "Ken",
+    "Jan Ulrich"
+  ],
+  "nelson": [
+    "RompeRalph",
+    "Bud Spencer"
+  ],
+  "pica": [
+    "Avelino"
+  ],
+  "rainerWolfcastle": [
+    "Techno Viking"
+  ],
+  "rasca": [
+    "Cantinflas",
+    "Pepa"
+  ],
+  "robertassssso": [
+    "three"
+  ],
+  "selma": [
+    "Hembra Alpha"
+  ],
+  "srBruns": [
+    "Condemor",
+    "Conde Brácula",
+    "Condemor"
+  ],
+  "tonyElGordo": [
+    "Don Fabrione",
+    "El flautista de paquelín",
+    "Don Pin Pon",
+    "Diego Armando Donpinpona"
+  ],
+  "troyMcClure": [
+    "Francoise Gallardo",
+    "Jaime Lanister"
   ]
 }
