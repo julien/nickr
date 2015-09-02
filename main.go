@@ -37,7 +37,7 @@ func main() {
 	}
 
 	fmt.Printf("Listening on port: %s\n", *port)
-	http.Handle("/", characterHandler())
+	http.Handle("/", utils.Cors(characterHandler()))
 	http.ListenAndServe(":"+*port, nil)
 }
 
