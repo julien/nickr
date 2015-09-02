@@ -32,7 +32,7 @@ func main() {
 	loadCollection()
 
 	fmt.Printf("Listening on port: %s\n", *port)
-	http.Handle("/", utils.AddCORSHeaders(characterHandler()))
+	http.Handle("/", utils.AddCORSHeaders(collectionHandler()))
 	http.ListenAndServe(":"+*port, nil)
 }
 
@@ -76,7 +76,7 @@ func addToCollection(key string, body io.Reader, w http.ResponseWriter) error {
 	return nil
 }
 
-func characterHandler() http.Handler {
+func collectionHandler() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		name := r.URL.Path[1:]
 
