@@ -1,55 +1,60 @@
 {
- "barney": [
-  ""
- ],
- "duffman": [
-  "Poncio Pilato",
-  "Tintín",
-  "Raully",
-  "Espinete"
- ],
- "elAyudanteDeSantaClaus": [
-  "Joselito",
-  "50 Sombras de Gray",
-  "Rantanplan"
- ],
- "gabbo": [
-  "Nikki Lauda",
-  "Lope de Vega",
-  "Raully",
-  "Espinete"
- ],
- "julien": [
-  "fulanito",
-  "gabacho"
- ],
- "nedFlanders": [
-  "Ulrichen"
- ],
- "nelson": [
-  "RompeRalph",
-  "Bud Spencer"
- ],
- "pica": [
-  "Avelino"
- ],
- "rainerWolfcastle": [
-  "Techno Viking"
- ],
- "rasca": [
-  "Cantinflas",
-  "Pepa"
- ],
- "selma": [
-  "Hembra Alpha"
- ],
- "srBruns": [
-  "Condemor",
-  "Conde Brácula",
-  "Condemor"
- ],
- "troyMcClure": [
-  "Francoise Gallardo",
-  "Jaime Lanister"
- ]
+  "tonyElGordo": [
+    "Don Fabrione",
+    "El flautista de paquelín",
+    "Don Pin Pon",
+    "Diego Armando Donpinpona"
+  ],
+  "nedFlanders": [
+    "Chema el panadero",
+    "E.T",
+    "Ken",
+    "Jan Ulrich"
+  ],
+  "troyMcClure": [
+    "Francoise Gallardo",
+    "Jaime Lanister"
+  ],
+  "nelson": [
+    "RompeRalph",
+    "Bud Spencer"
+  ],
+  "rainerWolfcastle": [
+    "Techno Viking"
+  ],
+  "srBruns": [
+    "Condemor",
+    "Conde Brácula",
+    "Condemor"
+  ],
+  "barney": [
+    ""
+  ],
+  "elAyudanteDeSantaClaus": [
+    "Joselito",
+    "50 Sombras de Gray",
+    "Rantanplan"
+  ],
+  "selma": [
+    "Hembra Alpha"
+  ],
+  "rasca": [
+    "Cantinflas",
+    "Pepa"
+  ],
+  "pica": [
+    "Avelino"
+  ],
+  "gabbo": [
+    "Nikki Lauda",
+    "Lope de Vega",
+    "Raully",
+    "Espinete"
+  ],
+   "duffman": [
+    "Poncio Pilato",
+    "Tintín",
+    "Raully",
+    "Espinete"
+  ]
 }
