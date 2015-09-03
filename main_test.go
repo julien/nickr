@@ -8,24 +8,7 @@ import (
 )
 
 func TestMain(m *testing.M) {
-
-	// var t *testing.T
-	// if *port != "" {
-	// 	t.Errorf("got %v want 8080", *port)
-	// }
-
 	os.Exit(m.Run())
-}
-
-func TestLoadCollection(t *testing.T) {
-	err := loadCollection()
-	if err != nil {
-		t.Errorf("got %v", err)
-	}
-
-	if collection == nil {
-		t.Errorf("got %v expected collection not to be nil\n", err)
-	}
 }
 
 func TestIndexHandler(t *testing.T) {
@@ -52,7 +35,7 @@ func TestNonExistingHandler(t *testing.T) {
 	h.ServeHTTP(w, req)
 
 	if w.Code != http.StatusNotFound {
-		t.Errorf("got %v want 400", w.Code)
+		t.Errorf("got %v want 404", w.Code)
 	}
 
 }

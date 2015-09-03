@@ -63,8 +63,16 @@ func collectionHandler() http.Handler {
 				return
 			}
 
-			if usr, err := users.GetByName(name); usr != nil && err == nil {
+			usr, err := users.GetByName(name)
+			if err != nil {
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+
+			if usr != nil {
 				handleGet(w, usr)
+			} else {
+				handleNotFound(w, "user not found")
 			}
 
 		} else {
