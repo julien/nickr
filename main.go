@@ -6,19 +6,24 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"os"
 
+	"github.com/julien/nickr/data"
 	"github.com/julien/nickr/utils"
 )
 
-const file string = "data.json"
+const fbURL = "https://nickr.firebaseio.com/users/"
 
 var (
-	port       = flag.String("port", os.Getenv("PORT"), "http port")
-	collection = utils.Collection{}
+	port  = flag.String("port", os.Getenv("PORT"), "http port")
+	users = data.NewUsers(fbURL)
 )
+
+type response struct {
+	Message string                 `json:"message"`
+	Errors  map[string]interface{} `json:"errros,omitempty"`
+}
 
 func init() {
 	if *port == "" {
@@ -29,110 +34,150 @@ func init() {
 func main() {
 	flag.Parse()
 
-	loadCollection()
-
 	fmt.Printf("Listening on port: %s\n", *port)
-	http.Handle("/", utils.AddCORSHeaders(collectionHandler()))
+	http.Handle("/", utils.AddCORS(collectionHandler()))
 	http.ListenAndServe(":"+*port, nil)
 }
 
-func loadCollection() error {
-	_, err := collection.FromJSON(file)
-	return err
+func encodeJSON(v interface{}) ([]byte, error) {
+	return json.Marshal(v)
 }
 
-func itemsToJSON(items []string) ([]byte, error) {
-	return json.Marshal(items)
-}
-
-func itemsFromBody(body io.Reader) ([]string, error) {
-	var err error
-	b, err := ioutil.ReadAll(body)
-	if err != nil {
-		return nil, err
-	}
-
-	var s []string
-	err = json.Unmarshal(b, &s)
-	if err != nil {
-		return nil, err
-	}
-	return s, nil
-}
-
-func addToCollection(key string, body io.Reader, w http.ResponseWriter) error {
-	items, err := itemsFromBody(body)
-	if err != nil {
-		return err
-	}
-
-	collection.Add(key, items)
-
-	if err := collection.Flush(file); err != nil {
-		return err
-	}
-
-	loadCollection()
-	return nil
+func decodeJSON(data []byte, v interface{}) error {
+	return json.Unmarshal(data, &v)
 }
 
 func collectionHandler() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		name := r.URL.Path[1:]
 
-		if name == "" {
-			w.Header().Set("Content-type", "text/html")
-			w.Write([]byte("<h1>NickR</h1>"))
-			return
-		}
-
-		if it := collection.Get(name); it != nil {
-			switch r.Method {
-
-			case "DELETE":
-				collection.Delete(name)
-				if err := collection.Flush(file); err != nil {
-					http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		if r.Method == "GET" {
+			name := r.URL.Path[1:]
+			if name == "" {
+				// load all data in the "background"
+				if _, err := users.All(); err != nil {
+					fmt.Printf("Error loading data: %v\n", err)
 				}
-				loadCollection()
-				w.WriteHeader(http.StatusNoContent)
 
-			case "GET":
-				res, err := itemsToJSON(it)
-				if err != nil {
-					http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-				}
-				w.Header().Set("Content-Type", "application/json")
-				w.Write(res)
-
-			case "PATCH":
-				items, err := itemsFromBody(r.Body)
-				if err != nil {
-					http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-				}
-				collection.Set(name, items)
-				if err := collection.Flush(file); err != nil {
-					http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-				}
-				loadCollection()
-				w.WriteHeader(http.StatusOK)
-
-			case "PUT":
-				if err := addToCollection(name, r.Body, w); err != nil {
-					log.Fatal(err)
-					http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-				}
-				w.WriteHeader(http.StatusOK)
+				w.Header().Set("Content-type", "text/html")
+				w.Write([]byte("<h1>NickR</h1>"))
+				return
 			}
-		} else if r.Method == "POST" {
-			if err := addToCollection(name, r.Body, w); err != nil {
-				log.Fatal(err)
-				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+
+			if usr, err := users.GetByName(name); usr != nil && err == nil {
+				handleGet(w, usr)
 			}
-			w.WriteHeader(http.StatusCreated)
+
 		} else {
-			w.WriteHeader(http.StatusNotFound)
+			usr, err := bodyToUser(r.Body)
+			if err != nil {
+				fmt.Printf("Body error: %v\n", err)
+			}
+
+			switch r.Method {
+			case "POST":
+				handlePost(w, usr)
+			case "PUT":
+				handlePut(w, usr)
+			case "DELETE":
+				handleDelete(w, usr)
+			default:
+				handleNotFound(w, "user not found")
+			}
 		}
 
 	})
+}
+
+func bodyToByte(body io.Reader) ([]byte, error) {
+	b, err := ioutil.ReadAll(body)
+	if err != nil {
+		return nil, err
+	}
+	return b, nil
+}
+
+func bodyToUser(body io.Reader) (*data.User, error) {
+	b, err := bodyToByte(body)
+	if err != nil {
+		return nil, err
+	}
+
+	usr := &data.User{}
+	if err := decodeJSON(b, usr); err != nil {
+		return nil, err
+	}
+
+	return usr, nil
+}
+
+func handleGet(w http.ResponseWriter, usr *data.User) {
+	res, err := encodeJSON(usr)
+	if err != nil {
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(res)
+}
+
+func handlePost(w http.ResponseWriter, usr *data.User) {
+	if err := users.Add(usr); err != nil {
+		msg := &response{Message: fmt.Sprintf("%s", err)}
+		res, err := encodeJSON(msg)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write(res)
+		return
+	}
+
+	res, err := encodeJSON(usr)
+	if err != nil {
+		fmt.Printf("Encode error: %v\n", err)
+	}
+	w.WriteHeader(http.StatusCreated)
+	w.Write(res)
+}
+
+func handlePut(w http.ResponseWriter, usr *data.User) {
+	if id := users.GetUserID(usr.Name); id != "" {
+
+		u, err := users.Update(id, usr)
+		if err != nil {
+			fmt.Printf("Set error: %v\n", err)
+		}
+
+		if u != nil {
+			res, err := encodeJSON(u)
+			if err != nil {
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+			w.Write(res)
+		}
+
+	} else {
+		handleNotFound(w, "user not found")
+	}
+}
+
+func handleDelete(w http.ResponseWriter, usr *data.User) {
+	if err := users.Delete(usr.Name); err != nil {
+		handleNotFound(w, fmt.Sprintf("%s", err))
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+}
+
+func handleNotFound(w http.ResponseWriter, s string) {
+
+	msg := &response{Message: s}
+	res, err := encodeJSON(msg)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusNotFound)
+	w.Write(res)
 }

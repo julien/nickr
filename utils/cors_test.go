@@ -12,10 +12,10 @@ func dummyHandler() http.Handler {
 	})
 }
 
-func TestAddCORSHeaders(t *testing.T) {
+func TestAddCORS(t *testing.T) {
 	req, _ := http.NewRequest("GET", "/", nil)
 	w := httptest.NewRecorder()
-	h := AddCORSHeaders(dummyHandler())
+	h := AddCORS(dummyHandler())
 	h.ServeHTTP(w, req)
 
 	if w.Header().Get("Access-Control-Allow-Origin") != "*" {
