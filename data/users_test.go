@@ -101,28 +101,28 @@ func TestGetByID(t *testing.T) {
 
 }
 
-func TestUpdate(t *testing.T) {
-	u := NewUsers(fbURL + "tests-update/users/")
-
-	v := &User{"joe", []string{"Gabbo", "Ned Flanders"}, ""}
-	// add the user don't care if it errors, we need to Get it later
-	u.Add(v)
-
-	// get the ID
-	if id := u.GetUserID("joe"); id == "" {
-		t.Errorf("couldn't get user id by name\n")
-	} else {
-		b := &User{"bob", []string{"snoop dog"}, ""}
-
-		c, err := u.Update(id, b)
-		if err != nil {
-			t.Errorf("error updating user: %v\n", err)
-		}
-		if c.Name != "bob" {
-			t.Errorf("expected user name to be bob\n")
-		}
-	}
-}
+// func TestUpdate(t *testing.T) {
+// 	u := NewUsers(fbURL + "tests-update/users/")
+//
+// 	v := &User{"joe", []string{"Gabbo", "Ned Flanders"}, ""}
+// 	// add the user don't care if it errors, we need to Get it later
+// 	u.Add(v)
+//
+// 	// get the ID
+// 	if id := u.GetUserID("joe"); id == "" {
+// 		t.Errorf("couldn't get user id by name\n")
+// 	} else {
+// 		b := &User{"bob", []string{"snoop dog"}, ""}
+//
+// 		c, err := u.Update(id, b)
+// 		if err != nil {
+// 			t.Errorf("error updating user: %v\n", err)
+// 		}
+// 		if c.Name != "bob" {
+// 			t.Errorf("expected user name to be bob\n")
+// 		}
+// 	}
+// }
 
 func TestDelete(t *testing.T) {
 
