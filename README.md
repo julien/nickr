@@ -1,5 +1,4 @@
-NickR
------
+# NickR
 
 Requirements
 ------------
@@ -15,10 +14,10 @@ Requirements
     go get github.com/melvinmt/firebase
     ```
 
-Running the api
----------------
+Development
+-----------
 
-  + In a terminal, issue the following command
+  + In a terminal, issue the following command to run the server
 
     ```shell
     go run main.go
@@ -29,6 +28,14 @@ Running the api
     ```shell
     go test --coverage ./...
     ```
+
+  + If add new files don't forget to run
+
+    ````shell
+    godep save -r ./...
+    ```
+
+
 
 
 
