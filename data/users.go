@@ -2,6 +2,7 @@ package data
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/julien/nickr/Godeps/_workspace/src/github.com/melvinmt/firebase"
 )
@@ -62,11 +63,15 @@ func (u *Users) Add(usr *User) error {
 }
 
 func (u *Users) Get(id string) (*User, error) {
+
+	fmt.Printf("Get using URL: %s\n", u.fbURL+"/"+id)
+
 	ref := firebase.NewReference(u.fbURL + id).Export(false)
 	usr := &User{}
 	if err := ref.Value(usr); err != nil {
 		return nil, err
 	}
+	fmt.Printf("Here user: %v: %v\n", usr, id)
 	return usr, nil
 }
 
@@ -78,7 +83,11 @@ func (u *Users) GetByName(name string) (*User, error) {
 	}
 
 	for _, v := range u.data {
+
+		fmt.Printf("looking up user: %v\n", v.Name == name)
+
 		if v.Name == name {
+			fmt.Printf("found user: %v\n", v)
 			return &v, nil
 		}
 	}
@@ -99,7 +108,9 @@ func (u *Users) GetByID(id string) *User {
 
 func (u *Users) GetUserID(name string) string {
 	if u.data == nil {
-		u.All()
+		if _, err := u.All(); err != nil {
+			return ""
+		}
 	}
 	for k, v := range u.data {
 		if v.Name == name {
@@ -146,6 +157,8 @@ func (u *Users) Delete(name string) error {
 		}
 		// also delete from the map
 		delete(u.data, id)
+	} else {
+		return errors.New("user not found")
 	}
-	return errors.New("user not found")
+	return nil
 }
