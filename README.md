@@ -65,9 +65,9 @@ API
     `/` | `GET` | "index" page
     `/users` | `GET` | List all users
     `/users/NAME` | `GET` | List a user
-    `/users/NAME` | `POST`  | Create a user
-    `/users/NAME` | `PUT` | Update a user
-    `/users/NAME` | `DELETE` | Delete a user
+    `/users` | `POST`  | Create a user
+    `/users` | `PUT` | Update a user
+    `/users` | `DELETE` | Delete a user
 
     For each "non" `GET` request, send the following parameters in the request `BODY`
 
