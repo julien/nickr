@@ -19,6 +19,8 @@ var (
 	usersPath = regexp.MustCompile(`(users/?)(\w+)?`)
 )
 
+var dbg Debugging = false
+
 type response struct {
 	Message string                 `json:"message"`
 	Errors  map[string]interface{} `json:"errros,omitempty"`
@@ -33,7 +35,7 @@ func init() {
 func main() {
 	flag.Parse()
 
-	fmt.Printf("Listening on port: %s\n", *port)
+	dbg.Printf("Listening on port: %s\n", *port)
 	http.Handle("/", AddCORS(handleRequest(), "*", "X-Requested-With", "GET,POST,PUT,DELETE"))
 	http.Handle("/app/", handleStatic())
 	http.ListenAndServe(":"+*port, nil)
@@ -69,7 +71,7 @@ func handleRequest() http.Handler {
 			submatches := matches[0]
 
 			if len(submatches) == 3 {
-				fmt.Println("got users")
+
 				if r.Method == "GET" {
 					if submatches[2] != "" {
 						usr, err := users.GetByName(submatches[2])
@@ -103,7 +105,7 @@ func handleRequest() http.Handler {
 				} else {
 					usr, err := bodyToUser(r.Body)
 					if err != nil {
-						fmt.Printf("Body error: %v\n", err)
+						dbg.Printf("Body error: %v\n", err)
 					}
 
 					switch r.Method {
@@ -168,7 +170,7 @@ func handlePost(w http.ResponseWriter, usr *User) {
 
 	res, err := encodeJSON(usr)
 	if err != nil {
-		fmt.Printf("Encode error: %v\n", err)
+		dbg.Printf("Encode error: %v\n", err)
 	}
 	w.WriteHeader(http.StatusCreated)
 	w.Write(res)
@@ -179,7 +181,7 @@ func handlePut(w http.ResponseWriter, usr *User) {
 
 		u, err := users.Update(id, usr)
 		if err != nil {
-			fmt.Printf("Set error: %v\n", err)
+			dbg.Printf("Set error: %v\n", err)
 		}
 
 		if u != nil {
