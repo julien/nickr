@@ -74,8 +74,8 @@ API
     ```json
     {
       "name": "string",
-        "nicknames": "[]string",
-        "picture": "string/optional"
+      "nicknames": "[]string",
+      "picture": "string/optional"
     }
     ```
 
