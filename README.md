@@ -40,7 +40,7 @@ Development
     If you want to generate test coverage output, use:
 
     ````shell
-    go tests --coverprofile=out.cov ./...
+    go test --coverprofile=out.cov ./...
     ```
 
     You can then view the coverage report in your browser with:
