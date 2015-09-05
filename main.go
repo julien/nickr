@@ -8,16 +8,13 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
-
-	"github.com/julien/nickr/data"
-	"github.com/julien/nickr/utils"
 )
 
 const fbURL = "https://nickr.firebaseio.com/users/"
 
 var (
 	port  = flag.String("port", os.Getenv("PORT"), "http port")
-	users = data.NewUsers(fbURL)
+	users = NewUsers(fbURL)
 )
 
 type response struct {
@@ -35,7 +32,7 @@ func main() {
 	flag.Parse()
 
 	fmt.Printf("Listening on port: %s\n", *port)
-	http.Handle("/", utils.AddCORS(collectionHandler()))
+	http.Handle("/", AddCORS(collectionHandler(), "*", "X-Requested-With", "GET,POST,PUT,DELETE"))
 	http.ListenAndServe(":"+*port, nil)
 }
 
@@ -92,7 +89,6 @@ func collectionHandler() http.Handler {
 				handleNotFound(w, "user not found")
 			}
 		}
-
 	})
 }
 
@@ -104,13 +100,13 @@ func bodyToByte(body io.Reader) ([]byte, error) {
 	return b, nil
 }
 
-func bodyToUser(body io.Reader) (*data.User, error) {
+func bodyToUser(body io.Reader) (*User, error) {
 	b, err := bodyToByte(body)
 	if err != nil {
 		return nil, err
 	}
 
-	usr := &data.User{}
+	usr := &User{}
 	if err := decodeJSON(b, usr); err != nil {
 		return nil, err
 	}
@@ -118,7 +114,7 @@ func bodyToUser(body io.Reader) (*data.User, error) {
 	return usr, nil
 }
 
-func handleGet(w http.ResponseWriter, usr *data.User) {
+func handleGet(w http.ResponseWriter, usr *User) {
 	res, err := encodeJSON(usr)
 	if err != nil {
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
@@ -127,7 +123,7 @@ func handleGet(w http.ResponseWriter, usr *data.User) {
 	w.Write(res)
 }
 
-func handlePost(w http.ResponseWriter, usr *data.User) {
+func handlePost(w http.ResponseWriter, usr *User) {
 	if err := users.Add(usr); err != nil {
 		msg := &response{Message: fmt.Sprintf("%s", err)}
 		res, err := encodeJSON(msg)
@@ -148,7 +144,7 @@ func handlePost(w http.ResponseWriter, usr *data.User) {
 	w.Write(res)
 }
 
-func handlePut(w http.ResponseWriter, usr *data.User) {
+func handlePut(w http.ResponseWriter, usr *User) {
 	if id := users.GetUserID(usr.Name); id != "" {
 
 		u, err := users.Update(id, usr)
@@ -170,7 +166,7 @@ func handlePut(w http.ResponseWriter, usr *data.User) {
 	}
 }
 
-func handleDelete(w http.ResponseWriter, usr *data.User) {
+func handleDelete(w http.ResponseWriter, usr *User) {
 	if err := users.Delete(usr.Name); err != nil {
 		handleNotFound(w, fmt.Sprintf("%s", err))
 		return
