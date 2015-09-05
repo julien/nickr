@@ -1,4 +1,4 @@
-package main
+package nickr
 
 import (
 	"errors"
@@ -7,12 +7,14 @@ import (
 	"github.com/julien/nickr/Godeps/_workspace/src/github.com/melvinmt/firebase"
 )
 
+// Users is the main data model.
 type User struct {
 	Name      string   `json:"name"`
 	Nicknames []string `json:"nicknames"`
 	Picture   string   `json:"picture"`
 }
 
+// HasNickname returns a boolean indicating if a User has a nickname or not.
 func (u *User) HasNickname(nick string) bool {
 	for _, v := range u.Nicknames {
 		if v == nick {
@@ -22,15 +24,18 @@ func (u *User) HasNickname(nick string) bool {
 	return false
 }
 
+// Users is a collection of User objects, that uses Firebase as it's persistance layer.
 type Users struct {
 	data  map[string]User
 	fbURL string // Firebase URL
 }
 
+// NewUsers returns a new collection of "User" objects.
 func NewUsers(fbURL string) *Users {
 	return &Users{fbURL: fbURL}
 }
 
+// All returns all the users in this collection.
 func (u *Users) All() (map[string]User, error) {
 	ref := firebase.NewReference(u.fbURL)
 	if err := ref.Value(&u.data); err != nil {
@@ -39,6 +44,7 @@ func (u *Users) All() (map[string]User, error) {
 	return u.data, nil
 }
 
+// Add adds a new user to this collection.
 func (u *Users) Add(usr *User) error {
 	ref := firebase.NewReference(u.fbURL)
 
@@ -46,7 +52,6 @@ func (u *Users) Add(usr *User) error {
 		return errors.New("Invalid user")
 	}
 
-	// TODO: Check for existing "name" ... if so update
 	existing, err := u.GetByName(usr.Name)
 	if err != nil {
 		return err
@@ -62,19 +67,17 @@ func (u *Users) Add(usr *User) error {
 	return nil
 }
 
+// Get returns a user given an id.
 func (u *Users) Get(id string) (*User, error) {
-
-	fmt.Printf("Get using URL: %s\n", u.fbURL+"/"+id)
-
 	ref := firebase.NewReference(u.fbURL + id).Export(false)
 	usr := &User{}
 	if err := ref.Value(usr); err != nil {
 		return nil, err
 	}
-	fmt.Printf("Here user: %v: %v\n", usr, id)
 	return usr, nil
 }
 
+// GetByName returns a user given a name.
 func (u *Users) GetByName(name string) (*User, error) {
 	if u.data == nil {
 		if _, err := u.All(); err != nil {
@@ -94,6 +97,7 @@ func (u *Users) GetByName(name string) (*User, error) {
 	return nil, nil
 }
 
+// GetByID returns a user given an id.
 func (u *Users) GetByID(id string) *User {
 	if u.data == nil {
 		u.All()
@@ -106,6 +110,7 @@ func (u *Users) GetByID(id string) *User {
 	return nil
 }
 
+// GetUserID returns a user's id given a name.
 func (u *Users) GetUserID(name string) string {
 	if u.data == nil {
 		if _, err := u.All(); err != nil {
@@ -120,6 +125,7 @@ func (u *Users) GetUserID(name string) string {
 	return ""
 }
 
+// Update a user given an id and a "User" object.
 func (u *Users) Update(id string, v *User) (*User, error) {
 	if usr := u.GetByID(id); usr != nil {
 
@@ -149,6 +155,7 @@ func (u *Users) Update(id string, v *User) (*User, error) {
 	return nil, nil
 }
 
+// Delete a user with the specified name.
 func (u *Users) Delete(name string) error {
 	if id := u.GetUserID(name); id != "" {
 		ref := firebase.NewReference(u.fbURL + id)
