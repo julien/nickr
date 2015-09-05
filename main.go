@@ -61,13 +61,6 @@ func handleRequest() http.Handler {
 
 		// if we don't match anything render static content
 		if len(matches) == 0 {
-<<<<<<< HEAD
-			// TODO: handleStatic(w, path)
-			//       if path == path = index.html
-			// w.Header().Set("Content-type", "text/html")
-			// w.Write([]byte("<h1>NickR</h1>"))
-=======
->>>>>>> master
 			http.Redirect(w, r, "/app/", http.StatusMovedPermanently)
 			return
 		}
@@ -75,14 +68,10 @@ func handleRequest() http.Handler {
 		if len(matches) > 0 {
 			submatches := matches[0]
 
-			fmt.Printf("submatches: %v - %v - %s\n", submatches, len(submatches), submatches[2] == "")
-
 			if len(submatches) == 3 {
 				fmt.Println("got users")
 				if r.Method == "GET" {
 					if submatches[2] != "" {
-						fmt.Printf("got username: %v\n", submatches[2])
-
 						usr, err := users.GetByName(submatches[2])
 						if err != nil {
 							w.WriteHeader(http.StatusInternalServerError)
@@ -97,7 +86,6 @@ func handleRequest() http.Handler {
 					} else {
 						all, err := users.All()
 						if err != nil {
-							fmt.Printf("Error loading data: %v\n", err)
 							w.WriteHeader(http.StatusInternalServerError)
 							return
 						}
