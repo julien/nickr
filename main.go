@@ -35,6 +35,7 @@ func main() {
 
 	fmt.Printf("Listening on port: %s\n", *port)
 	http.Handle("/", AddCORS(handleRequest(), "*", "X-Requested-With", "GET,POST,PUT,DELETE"))
+	http.Handle("/app/", handleStatic())
 	http.ListenAndServe(":"+*port, nil)
 }
 
@@ -46,21 +47,21 @@ func decodeJSON(data []byte, v interface{}) error {
 	return json.Unmarshal(data, &v)
 }
 
+func handleStatic() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, r.URL.Path[1:])
+	})
+}
+
 func handleRequest() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 		path := r.URL.Path[1:]
 		matches := usersPath.FindAllStringSubmatch(path, -1)
 
-		fmt.Printf("path: %v\n", path)
-		fmt.Printf("matches: %v\n", matches)
-
 		// if we don't match anything render static content
 		if len(matches) == 0 {
-			// TODO: handleStatic(w, path)
-			//       if path == path = index.html
-			w.Header().Set("Content-type", "text/html")
-			w.Write([]byte("<h1>NickR</h1>"))
+			http.Redirect(w, r, "/app/", http.StatusMovedPermanently)
 			return
 		}
 
