@@ -55,4 +55,28 @@ Development
     godep save -r ./...
     ```
 
+API
+---
+
+  + These are the available endpoints:
+
+    URL | Method  | DESC.
+    --- | --- | ---
+    `/` | `GET` | "index" page
+    `/users` | `GET` | List all users
+    `/users/NAME` | `GET` | List a user
+    `/users/NAME` | `POST`  | Create a user
+    `/users/NAME` | `PUT` | Update a user
+    `/users/NAME` | `DELETE` | Delete a user
+
+    For each "non" `GET` request, send the following parameters in the request `BODY`
+
+    ```json
+    {
+      "name": "string",
+        "nicknames": "[]string",
+        "picture": "string/optional"
+    }
+    ```
+
 

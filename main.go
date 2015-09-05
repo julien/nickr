@@ -8,13 +8,15 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"regexp"
 )
 
 const fbURL = "https://nickr.firebaseio.com/users/"
 
 var (
-	port  = flag.String("port", os.Getenv("PORT"), "http port")
-	users = NewUsers(fbURL)
+	port      = flag.String("port", os.Getenv("PORT"), "http port")
+	users     = NewUsers(fbURL)
+	usersPath = regexp.MustCompile(`(users/?)(\w+)?`)
 )
 
 type response struct {
@@ -32,7 +34,7 @@ func main() {
 	flag.Parse()
 
 	fmt.Printf("Listening on port: %s\n", *port)
-	http.Handle("/", AddCORS(collectionHandler(), "*", "X-Requested-With", "GET,POST,PUT,DELETE"))
+	http.Handle("/", AddCORS(handleRequest(), "*", "X-Requested-With", "GET,POST,PUT,DELETE"))
 	http.ListenAndServe(":"+*port, nil)
 }
 
@@ -44,49 +46,81 @@ func decodeJSON(data []byte, v interface{}) error {
 	return json.Unmarshal(data, &v)
 }
 
-func collectionHandler() http.Handler {
+func handleRequest() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
-		if r.Method == "GET" {
-			name := r.URL.Path[1:]
-			if name == "" {
-				// load all data in the "background"
-				if _, err := users.All(); err != nil {
-					fmt.Printf("Error loading data: %v\n", err)
+		path := r.URL.Path[1:]
+		matches := usersPath.FindAllStringSubmatch(path, -1)
+
+		fmt.Printf("path: %v\n", path)
+		fmt.Printf("matches: %v\n", matches)
+
+		// if we don't match anything render static content
+		if len(matches) == 0 {
+			// TODO: handleStatic(w, path)
+			//       if path == path = index.html
+			w.Header().Set("Content-type", "text/html")
+			w.Write([]byte("<h1>NickR</h1>"))
+			return
+		}
+
+		if len(matches) > 0 {
+			submatches := matches[0]
+
+			fmt.Printf("submatches: %v - %v - %s\n", submatches, len(submatches), submatches[2] == "")
+
+			if len(submatches) == 3 {
+				fmt.Println("got users")
+				if r.Method == "GET" {
+					if submatches[2] != "" {
+						fmt.Printf("got username: %v\n", submatches[2])
+
+						usr, err := users.GetByName(submatches[2])
+						if err != nil {
+							w.WriteHeader(http.StatusInternalServerError)
+							return
+						}
+
+						if usr != nil {
+							handleGet(w, usr)
+						} else {
+							handleNotFound(w, "user not found")
+						}
+					} else {
+						all, err := users.All()
+						if err != nil {
+							fmt.Printf("Error loading data: %v\n", err)
+							w.WriteHeader(http.StatusInternalServerError)
+							return
+						}
+						b, err := encodeJSON(all)
+						if err != nil {
+							w.WriteHeader(http.StatusInternalServerError)
+							return
+						}
+
+						w.Header().Set("Content-type", "application/json")
+						w.Write(b)
+						return
+
+					}
+				} else {
+					usr, err := bodyToUser(r.Body)
+					if err != nil {
+						fmt.Printf("Body error: %v\n", err)
+					}
+
+					switch r.Method {
+					case "POST":
+						handlePost(w, usr)
+					case "PUT":
+						handlePut(w, usr)
+					case "DELETE":
+						handleDelete(w, usr)
+					default:
+						handleNotFound(w, "user not found")
+					}
 				}
-
-				w.Header().Set("Content-type", "text/html")
-				w.Write([]byte("<h1>NickR</h1>"))
-				return
-			}
-
-			usr, err := users.GetByName(name)
-			if err != nil {
-				w.WriteHeader(http.StatusInternalServerError)
-				return
-			}
-
-			if usr != nil {
-				handleGet(w, usr)
-			} else {
-				handleNotFound(w, "user not found")
-			}
-
-		} else {
-			usr, err := bodyToUser(r.Body)
-			if err != nil {
-				fmt.Printf("Body error: %v\n", err)
-			}
-
-			switch r.Method {
-			case "POST":
-				handlePost(w, usr)
-			case "PUT":
-				handlePut(w, usr)
-			case "DELETE":
-				handleDelete(w, usr)
-			default:
-				handleNotFound(w, "user not found")
 			}
 		}
 	})
