@@ -5,7 +5,7 @@ Requirements
 
   + Download [Go](http://golang.org/dl)
 
-  + Setup your Go environment
+  + Setup and [test your Go installation](https://golang.org/doc/install#testing)
 
   + Install the Go dependencies
 
