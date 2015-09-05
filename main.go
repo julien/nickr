@@ -61,10 +61,13 @@ func handleRequest() http.Handler {
 
 		// if we don't match anything render static content
 		if len(matches) == 0 {
+<<<<<<< HEAD
 			// TODO: handleStatic(w, path)
 			//       if path == path = index.html
 			// w.Header().Set("Content-type", "text/html")
 			// w.Write([]byte("<h1>NickR</h1>"))
+=======
+>>>>>>> master
 			http.Redirect(w, r, "/app/", http.StatusMovedPermanently)
 			return
 		}
