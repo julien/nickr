@@ -1,4 +1,4 @@
-package nickr
+package main
 
 import (
 	"encoding/json"
