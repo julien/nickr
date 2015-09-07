@@ -36,7 +36,7 @@ func main() {
 	flag.Parse()
 
 	dbg.Printf("Listening on port: %s\n", *port)
-	http.Handle("/", AddCORS(handleRequest(), "*", "X-Requested-With", "GET,POST,PUT,DELETE"))
+	http.Handle("/", AddCORS(handleRequest(), "*", "X-Requested-With", "GET,POST,PUT,PATCH,DELETE"))
 	http.Handle("/app/", handleStatic())
 	http.ListenAndServe(":"+*port, nil)
 }
@@ -46,6 +46,8 @@ func encodeJSON(v interface{}) ([]byte, error) {
 }
 
 func decodeJSON(data []byte, v interface{}) error {
+	fmt.Printf("decodeJSON - data: %vn", data)
+
 	return json.Unmarshal(data, &v)
 }
 
@@ -103,14 +105,21 @@ func handleRequest() http.Handler {
 
 					}
 				} else {
+					if r.Method == "OPTIONS" {
+						fmt.Printf("Pringao\n")
+						return
+					}
+
 					usr, err := bodyToUser(r.Body)
 					if err != nil {
-						dbg.Printf("Body error: %v\n", err)
+						// dbg.Printf("Body error: %v\n", err)
 					}
 
 					switch r.Method {
 					case "POST":
 						handlePost(w, usr)
+					case "PATCH":
+						handlePatch(w, usr)
 					case "PUT":
 						handlePut(w, usr)
 					case "DELETE":
@@ -125,6 +134,7 @@ func handleRequest() http.Handler {
 }
 
 func bodyToByte(body io.Reader) ([]byte, error) {
+
 	b, err := ioutil.ReadAll(body)
 	if err != nil {
 		return nil, err
@@ -133,6 +143,8 @@ func bodyToByte(body io.Reader) ([]byte, error) {
 }
 
 func bodyToUser(body io.Reader) (*User, error) {
+	fmt.Printf("Body: %v\n", body)
+
 	b, err := bodyToByte(body)
 	if err != nil {
 		return nil, err
@@ -181,7 +193,29 @@ func handlePut(w http.ResponseWriter, usr *User) {
 
 		u, err := users.Update(id, usr)
 		if err != nil {
-			dbg.Printf("Set error: %v\n", err)
+			dbg.Printf("Update error: %v\n", err)
+		}
+
+		if u != nil {
+			res, err := encodeJSON(u)
+			if err != nil {
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+			w.Write(res)
+		}
+
+	} else {
+		handleNotFound(w, "user not found")
+	}
+}
+
+func handlePatch(w http.ResponseWriter, v *User) {
+
+	if id := users.GetUserID(v.Name); id != "" {
+		u, err := users.Patch(id, v)
+		if err != nil {
+			dbg.Printf("Patch error: %v\n", err)
 		}
 
 		if u != nil {
