@@ -5,7 +5,7 @@
   "description": "nickr front end shit",
   "main": "app/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "posttest": "npm run build",
     "prepare": "mkdir -p app/dist",
     "build": "browserify -t reactify app/src/main.js | uglifyjs -c > app/dist/main.min.js",
     "watch": "npm run prepare && watchify -t reactify app/src/main.js > app/dist/main.js"
