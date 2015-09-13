@@ -55,27 +55,6 @@ Development
     godep save -r ./...
     ```
 
-  + Front-end
-
-    For the moment there is a basic npm project
-    you can start watching for JS changes with
-
-    ```shell
-    npm run watch
-    ```
-
-    you can "compile" a minified version with:
-
-    ```shell
-    npm run build
-    ```
-
-    don't forget to get the dependencies with
-
-    ```shell
-    npm install
-    ```
-
 API
 ---
 
