@@ -38,6 +38,7 @@ func main() {
 	dbg.Printf("Listening on port: %s\n", *port)
 	http.Handle("/", AddCORS(handleRequest(), "*", "X-Requested-With", "GET,POST,PUT,PATCH,DELETE"))
 	http.Handle("/app/", handleStatic())
+	http.Handle("/node_modules/", handleStatic())
 	http.ListenAndServe(":"+*port, nil)
 }
 
