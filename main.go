@@ -76,7 +76,12 @@ func handleRequest() http.Handler {
 			if len(submatches) == 3 {
 
 				if r.Method == "GET" {
+					// I actually don't know why the fuck I wrote this stuff ...
+
 					if submatches[2] != "" {
+
+						fmt.Printf("submatch: %s\n", submatches[2])
+
 						usr, err := users.GetByName(submatches[2])
 						if err != nil {
 							w.WriteHeader(http.StatusInternalServerError)
@@ -105,6 +110,7 @@ func handleRequest() http.Handler {
 						return
 
 					}
+
 				} else {
 					if r.Method == "OPTIONS" {
 						fmt.Printf("Pringao\n")

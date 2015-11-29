@@ -4,20 +4,25 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/julien/nickr/Godeps/_workspace/src/github.com/melvinmt/firebase"
+	"github.com/melvinmt/firebase"
 )
 
-// Users is the main data model.
+// Nickname represents a nickname it has a "Value" and a "Picture"
+type Nickname struct {
+	Value   string `json:"value"`
+	Picture string `json:"picture,omitempty"`
+}
+
+// User is the main data model.
 type User struct {
-	Name      string   `json:"name"`
-	Nicknames []string `json:"nicknames"`
-	Picture   string   `json:"picture"`
+	Name      string      `json:"name"`
+	Nicknames []*Nickname `json:"nicknames"`
 }
 
 // HasNickname returns a boolean indicating if a User has a nickname or not.
-func (u *User) HasNickname(nick string) bool {
+func (u *User) HasNickname(nick *Nickname) bool {
 	for _, v := range u.Nicknames {
-		if v == nick {
+		if v.Value == nick.Value && v.Picture == nick.Picture {
 			return true
 		}
 	}
@@ -59,10 +64,10 @@ func (u *Users) Add(usr *User) error {
 
 	if existing != nil {
 		return errors.New("existing user")
-	} else {
-		if err := ref.Push(usr); err != nil {
-			return err
-		}
+	}
+
+	if err := ref.Push(usr); err != nil {
+		return err
 	}
 	return nil
 }
@@ -137,11 +142,12 @@ func (u *Users) Update(id string, v *User) (*User, error) {
 			if !usr.HasNickname(v.Nicknames[i]) {
 				usr.Nicknames = append(usr.Nicknames, v.Nicknames[i])
 			}
+
 		}
 
-		if v.Picture != "" && usr.Picture != v.Picture {
-			usr.Picture = v.Picture
-		}
+		// if v.Picture != "" && usr.Picture != v.Picture {
+		// 	usr.Picture = v.Picture
+		// }
 
 		ref := firebase.NewReference(u.fbURL + id)
 
@@ -165,9 +171,9 @@ func (u *Users) Patch(id string, v *User) (*User, error) {
 
 		usr.Nicknames = v.Nicknames
 
-		if v.Picture != "" {
-			usr.Picture = v.Picture
-		}
+		// if v.Picture != "" {
+		// 	usr.Picture = v.Picture
+		// }
 
 		ref := firebase.NewReference(u.fbURL + id)
 
