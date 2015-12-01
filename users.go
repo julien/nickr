@@ -2,7 +2,7 @@ package main
 
 import (
 	"errors"
-	"fmt"
+	"strings"
 
 	"github.com/melvinmt/firebase"
 )
@@ -22,7 +22,7 @@ type User struct {
 // HasNickname returns a boolean indicating if a User has a nickname or not.
 func (u *User) HasNickname(nick *Nickname) bool {
 	for _, v := range u.Nicknames {
-		if v.Value == nick.Value && v.Picture == nick.Picture {
+		if strings.ToLower(v.Value) == strings.ToLower(nick.Value) && strings.ToLower(v.Picture) == strings.ToLower(nick.Picture) {
 			return true
 		}
 	}
@@ -69,6 +69,7 @@ func (u *Users) Add(usr *User) error {
 	if err := ref.Push(usr); err != nil {
 		return err
 	}
+
 	return nil
 }
 
@@ -91,11 +92,7 @@ func (u *Users) GetByName(name string) (*User, error) {
 	}
 
 	for _, v := range u.data {
-
-		fmt.Printf("looking up user: %v\n", v.Name == name)
-
-		if v.Name == name {
-			fmt.Printf("found user: %v\n", v)
+		if strings.ToLower(v.Name) == strings.ToLower(name) {
 			return &v, nil
 		}
 	}
@@ -123,7 +120,7 @@ func (u *Users) GetUserID(name string) string {
 		}
 	}
 	for k, v := range u.data {
-		if v.Name == name {
+		if strings.ToLower(v.Name) == strings.ToLower(name) {
 			return k
 		}
 	}
@@ -171,12 +168,7 @@ func (u *Users) Patch(id string, v *User) (*User, error) {
 
 		usr.Nicknames = v.Nicknames
 
-		// if v.Picture != "" {
-		// 	usr.Picture = v.Picture
-		// }
-
 		ref := firebase.NewReference(u.fbURL + id)
-
 		if err := ref.Update(usr); err != nil {
 			return nil, err
 		}

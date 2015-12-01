@@ -34,13 +34,13 @@ Development
   + To run tests, do
 
     ```shell
-    go test --coverage ./...
+    go test -cover -race ./...
     ```
 
     If you want to generate test coverage output, use:
 
     ````shell
-    go test --coverprofile=out.cov ./...
+    go test -coverprofile=out.cov ./...
     ```
 
     You can then view the coverage report in your browser with:
@@ -74,7 +74,7 @@ API
     ```json
     {
       "name": "string",
-      "nicknames": "[{\"value\": \"Some nickname\", \"picture\": \"some url\"}],
+      "nicknames": [{\"value\": \"Some nickname\", \"picture\": \"some url\"}],
       "picture": "string/optional"
     }
     ```
