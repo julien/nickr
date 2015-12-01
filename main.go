@@ -37,8 +37,6 @@ func main() {
 
 	dbg.Printf("Listening on port: %s\n", *port)
 	http.Handle("/", AddCORS(handleRequest(), "*", "X-Requested-With", "GET,POST,PUT,PATCH,DELETE"))
-	http.Handle("/app/", handleStatic())
-	http.Handle("/node_modules/", handleStatic())
 	http.ListenAndServe(":"+*port, nil)
 }
 
@@ -47,7 +45,7 @@ func encodeJSON(v interface{}) ([]byte, error) {
 }
 
 func decodeJSON(data []byte, v interface{}) error {
-	fmt.Printf("decodeJSON - data: %vn", data)
+	dbg.Printf("decodeJSON - data: %vn", data)
 
 	return json.Unmarshal(data, &v)
 }
@@ -66,7 +64,7 @@ func handleRequest() http.Handler {
 
 		// if we don't match anything render static content
 		if len(matches) == 0 {
-			http.Redirect(w, r, "/app/", http.StatusMovedPermanently)
+			fmt.Fprintf(w, "nickr")
 			return
 		}
 
@@ -80,7 +78,7 @@ func handleRequest() http.Handler {
 
 					if submatches[2] != "" {
 
-						fmt.Printf("submatch: %s\n", submatches[2])
+						dbg.Printf("submatch: %s\n", submatches[2])
 
 						usr, err := users.GetByName(submatches[2])
 						if err != nil {
@@ -112,14 +110,14 @@ func handleRequest() http.Handler {
 					}
 
 				} else {
+
 					if r.Method == "OPTIONS" {
-						fmt.Printf("Pringao\n")
 						return
 					}
 
 					usr, err := bodyToUser(r.Body)
 					if err != nil {
-						// dbg.Printf("Body error: %v\n", err)
+						dbg.Printf("Body error: %v\n", err)
 					}
 
 					switch r.Method {
@@ -150,7 +148,7 @@ func bodyToByte(body io.Reader) ([]byte, error) {
 }
 
 func bodyToUser(body io.Reader) (*User, error) {
-	fmt.Printf("Body: %v\n", body)
+	dbg.Printf("Body: %v\n", body)
 
 	b, err := bodyToByte(body)
 	if err != nil {
