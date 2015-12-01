@@ -73,9 +73,8 @@ API
 
     ```json
     {
-      "name": "string",
-      "nicknames": [{\"value\": \"Some nickname\", \"picture\": \"some url\"}],
-      "picture": "string/optional"
+      "name": "the users name",
+      "nicknames": [{"value": "the users nickname", "picture": "optional image url"}]
     }
     ```
 
