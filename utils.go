@@ -1,6 +1,9 @@
 package main
 
 import (
+	"encoding/json"
+	"io"
+	"io/ioutil"
 	"log"
 	"net/http"
 )
@@ -34,4 +37,37 @@ func AddCORS(next http.Handler, origin, headers, methods string) http.Handler {
 		}
 		next.ServeHTTP(w, r)
 	})
+}
+
+func encodeJSON(v interface{}) ([]byte, error) {
+	return json.Marshal(v)
+}
+
+func decodeJSON(data []byte, v interface{}) error {
+	return json.Unmarshal(data, &v)
+}
+
+func bodyToByte(body io.Reader) ([]byte, error) {
+
+	b, err := ioutil.ReadAll(body)
+	if err != nil {
+		return nil, err
+	}
+	return b, nil
+}
+
+func bodyToUser(body io.Reader) (*User, error) {
+	dbg.Printf("Body: %v\n", body)
+
+	b, err := bodyToByte(body)
+	if err != nil {
+		return nil, err
+	}
+
+	usr := &User{}
+	if err := decodeJSON(b, usr); err != nil {
+		return nil, err
+	}
+
+	return usr, nil
 }

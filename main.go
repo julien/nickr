@@ -1,11 +1,8 @@
 package main
 
 import (
-	"encoding/json"
 	"flag"
 	"fmt"
-	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"regexp"
@@ -40,22 +37,6 @@ func main() {
 	http.ListenAndServe(":"+*port, nil)
 }
 
-func encodeJSON(v interface{}) ([]byte, error) {
-	return json.Marshal(v)
-}
-
-func decodeJSON(data []byte, v interface{}) error {
-	dbg.Printf("decodeJSON - data: %vn", data)
-
-	return json.Unmarshal(data, &v)
-}
-
-func handleStatic() http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		http.ServeFile(w, r, r.URL.Path[1:])
-	})
-}
-
 func handleRequest() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
@@ -70,47 +51,10 @@ func handleRequest() http.Handler {
 
 		if len(matches) > 0 {
 			submatches := matches[0]
-
 			if len(submatches) == 3 {
-
 				if r.Method == "GET" {
-					// I actually don't know why the fuck I wrote this stuff ...
-
-					if submatches[2] != "" {
-
-						dbg.Printf("submatch: %s\n", submatches[2])
-
-						usr, err := users.GetByName(submatches[2])
-						if err != nil {
-							w.WriteHeader(http.StatusInternalServerError)
-							return
-						}
-
-						if usr != nil {
-							handleGet(w, usr)
-						} else {
-							handleNotFound(w, "user not found")
-						}
-					} else {
-						all, err := users.All()
-						if err != nil {
-							w.WriteHeader(http.StatusInternalServerError)
-							return
-						}
-						b, err := encodeJSON(all)
-						if err != nil {
-							w.WriteHeader(http.StatusInternalServerError)
-							return
-						}
-
-						w.Header().Set("Content-type", "application/json")
-						w.Write(b)
-						return
-
-					}
-
+					handleGet(w, submatches)
 				} else {
-
 					if r.Method == "OPTIONS" {
 						return
 					}
@@ -138,32 +82,43 @@ func handleRequest() http.Handler {
 	})
 }
 
-func bodyToByte(body io.Reader) ([]byte, error) {
+func handleGet(w http.ResponseWriter, submatches []string) {
 
-	b, err := ioutil.ReadAll(body)
-	if err != nil {
-		return nil, err
+	if submatches[2] != "" {
+		// we have a name
+		dbg.Printf("submatch: %s\n", submatches[2])
+
+		usr, err := users.GetByName(submatches[2])
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		if usr != nil {
+			handleUser(w, usr)
+		} else {
+			handleNotFound(w, "user not found")
+		}
+	} else {
+		// render all users
+		all, err := users.All()
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		b, err := encodeJSON(all)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Set("Content-type", "application/json")
+		w.Write(b)
+		return
 	}
-	return b, nil
 }
 
-func bodyToUser(body io.Reader) (*User, error) {
-	dbg.Printf("Body: %v\n", body)
-
-	b, err := bodyToByte(body)
-	if err != nil {
-		return nil, err
-	}
-
-	usr := &User{}
-	if err := decodeJSON(b, usr); err != nil {
-		return nil, err
-	}
-
-	return usr, nil
-}
-
-func handleGet(w http.ResponseWriter, usr *User) {
+func handleUser(w http.ResponseWriter, usr *User) {
 	res, err := encodeJSON(usr)
 	if err != nil {
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
