@@ -35,3 +35,15 @@ func TestAddCORS(t *testing.T) {
 		t.Errorf("got %v want 204", w.Code)
 	}
 }
+
+func TestEncodeJSON(t *testing.T) {
+	v := struct {
+		Name string `json:"string"`
+	}{
+		"tester",
+	}
+
+	if _, err := encodeJSON(v); err != nil {
+		t.Errorf("got %v\n", err)
+	}
+}
