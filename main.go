@@ -16,8 +16,6 @@ var (
 	usersPath = regexp.MustCompile(`(users/?)(\w+)?`)
 )
 
-var dbg Debugging = false
-
 type response struct {
 	Message string                 `json:"message"`
 	Errors  map[string]interface{} `json:"errros,omitempty"`
@@ -32,7 +30,6 @@ func init() {
 func main() {
 	flag.Parse()
 
-	dbg.Printf("Listening on port: %s\n", *port)
 	http.Handle("/", AddCORS(handleRequest(), "*", "X-Requested-With", "GET,POST,PUT,PATCH,DELETE"))
 	http.ListenAndServe(":"+*port, nil)
 }
@@ -61,7 +58,7 @@ func handleRequest() http.Handler {
 
 					usr, err := bodyToUser(r.Body)
 					if err != nil {
-						dbg.Printf("Body error: %v\n", err)
+						fmt.Printf("Body error: %v\n", err)
 					}
 
 					switch r.Method {
@@ -86,7 +83,7 @@ func handleGet(w http.ResponseWriter, submatches []string) {
 
 	if submatches[2] != "" {
 		// we have a name
-		dbg.Printf("submatch: %s\n", submatches[2])
+		fmt.Printf("submatch: %s\n", submatches[2])
 
 		usr, err := users.GetByName(submatches[2])
 		if err != nil {
@@ -142,7 +139,7 @@ func handlePost(w http.ResponseWriter, usr *User) {
 
 	res, err := encodeJSON(usr)
 	if err != nil {
-		dbg.Printf("Encode error: %v\n", err)
+		fmt.Printf("Encode error: %v\n", err)
 	}
 	w.WriteHeader(http.StatusCreated)
 	w.Write(res)
@@ -153,7 +150,7 @@ func handlePut(w http.ResponseWriter, usr *User) {
 
 		u, err := users.Update(id, usr)
 		if err != nil {
-			dbg.Printf("Update error: %v\n", err)
+			fmt.Printf("Update error: %v\n", err)
 		}
 
 		if u != nil {
@@ -175,7 +172,7 @@ func handlePatch(w http.ResponseWriter, v *User) {
 	if id := users.GetUserID(v.Name); id != "" {
 		u, err := users.Patch(id, v)
 		if err != nil {
-			dbg.Printf("Patch error: %v\n", err)
+			fmt.Printf("Patch error: %v\n", err)
 		}
 
 		if u != nil {

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -10,6 +11,22 @@ func dummyHandler() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNoContent)
 	})
+}
+
+type FakeReader struct {
+	content string
+	done    bool
+}
+
+func (r *FakeReader) Read(p []byte) (int, error) {
+	if r.done {
+		return 0, io.EOF
+	}
+	for i, b := range []byte(r.content) {
+		p[i] = b
+	}
+	r.done = true
+	return len(r.content), nil
 }
 
 func TestAddCORS(t *testing.T) {
@@ -38,6 +55,32 @@ func TestAddCORS(t *testing.T) {
 
 func TestBodyToByte(t *testing.T) {
 
+	r := &FakeReader{"tester", false}
+
+	b, err := bodyToByte(r)
+	if err != nil {
+		t.Errorf("error: %v\n", err)
+	}
+	if len(b) == 0 {
+		t.Errorf("expected reader to have data\n")
+	}
+}
+
+func TestBodyToUse(t *testing.T) {
+	r := &FakeReader{"{\"name\": \"tester\"}", false}
+
+	b, err := bodyToUser(r)
+	if err != nil {
+		t.Errorf("error: %v\n", err)
+	}
+
+	if len(b.Name) == 0 {
+		t.Errorf("expected user to have a name\n")
+	}
+
+	if b.Name != "tester" {
+		t.Errorf("expected user name to be tester, got: %v\n", b.Name)
+	}
 }
 
 func TestEncodeJSON(t *testing.T) {

@@ -4,19 +4,8 @@ import (
 	"encoding/json"
 	"io"
 	"io/ioutil"
-	"log"
 	"net/http"
 )
-
-// Debugging is a bool type used to enable or disable logging.
-type Debugging bool
-
-// Printf logs a message given a format, it uses the standard "log" package.
-func (d Debugging) Printf(format string, argv ...interface{}) {
-	if d {
-		log.Printf(format, argv...)
-	}
-}
 
 // AddCORS adds Cross Origin Resource Sharing headers to responses.
 func AddCORS(next http.Handler, origin, headers, methods string) http.Handler {
@@ -49,8 +38,6 @@ func bodyToByte(body io.Reader) ([]byte, error) {
 }
 
 func bodyToUser(body io.Reader) (*User, error) {
-	// dbg.Printf("Body: %v\n", body)
-
 	b, err := bodyToByte(body)
 	if err != nil {
 		return nil, err
