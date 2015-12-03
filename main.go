@@ -30,7 +30,7 @@ func init() {
 func main() {
 	flag.Parse()
 
-	http.Handle("/", AddCORS(handleRequest(), "*", "X-Requested-With", "GET,POST,PUT,PATCH,DELETE"))
+	http.Handle("/", AddCORS(handleRequest(), "*", "X-Requested-With", "GET,POST,PUT,DELETE"))
 	http.ListenAndServe(":"+*port, nil)
 }
 
@@ -64,8 +64,6 @@ func handleRequest() http.Handler {
 					switch r.Method {
 					case "POST":
 						handlePost(w, usr)
-					case "PATCH":
-						handlePatch(w, usr)
 					case "PUT":
 						handlePut(w, usr)
 					case "DELETE":
@@ -151,28 +149,6 @@ func handlePut(w http.ResponseWriter, usr *User) {
 		u, err := users.Update(id, usr)
 		if err != nil {
 			fmt.Printf("Update error: %v\n", err)
-		}
-
-		if u != nil {
-			res, err := encodeJSON(u)
-			if err != nil {
-				w.WriteHeader(http.StatusInternalServerError)
-				return
-			}
-			w.Write(res)
-		}
-
-	} else {
-		handleNotFound(w, "user not found")
-	}
-}
-
-func handlePatch(w http.ResponseWriter, v *User) {
-
-	if id := users.GetUserID(v.Name); id != "" {
-		u, err := users.Patch(id, v)
-		if err != nil {
-			fmt.Printf("Patch error: %v\n", err)
 		}
 
 		if u != nil {

@@ -158,27 +158,6 @@ func (u *Users) Update(id string, v *User) (*User, error) {
 	return nil, nil
 }
 
-// Patch updates a user given an id and a "User" object.
-func (u *Users) Patch(id string, v *User) (*User, error) {
-	if usr := u.GetByID(id); usr != nil {
-
-		if v.Name != "" && usr.Name != v.Name {
-			usr.Name = v.Name
-		}
-
-		usr.Nicknames = v.Nicknames
-
-		ref := firebase.NewReference(u.fbURL + id)
-		if err := ref.Update(usr); err != nil {
-			return nil, err
-		}
-
-		return usr, nil
-	}
-
-	return nil, nil
-}
-
 // Delete a user with the specified name.
 func (u *Users) Delete(name string) error {
 	if id := u.GetUserID(name); id != "" {

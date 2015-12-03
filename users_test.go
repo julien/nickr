@@ -161,9 +161,9 @@ func TestAddExisting(t *testing.T) {
 	}
 }
 
-func TestDelete(t *testing.T) {
+func TestDelete1(t *testing.T) {
 
-	u := NewUsers(fbTestsURL + "tests-delete/users/")
+	u := NewUsers(fbTestsURL + "tests-delete-1/users/")
 
 	var nicknames []*Nickname
 	nicknames = append(nicknames, &Nickname{"tester", "tester.png"})
@@ -179,6 +179,26 @@ func TestDelete(t *testing.T) {
 
 	if err := u.Delete("non_existing"); err == nil {
 		t.Errorf("expected an error while deleting a non existing user\n")
+	}
+
+}
+
+func TestDelete2(t *testing.T) {
+
+	u := NewUsers("")
+
+	if err := u.Delete(""); err == nil {
+		t.Errorf("expected an error%v\n")
+	}
+
+}
+
+func TestDelete3(t *testing.T) {
+
+	u := NewUsers(fbTestsURL + "tests-delete-3/users/")
+
+	if err := u.Delete("tester"); err == nil {
+		t.Errorf("expected an error%v\n")
 	}
 
 }

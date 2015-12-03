@@ -29,7 +29,6 @@ func AddCORS(next http.Handler, origin, headers, methods string) http.Handler {
 }
 
 func bodyToByte(body io.Reader) ([]byte, error) {
-
 	b, err := ioutil.ReadAll(body)
 	if err != nil {
 		return nil, err
