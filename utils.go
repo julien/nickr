@@ -39,14 +39,6 @@ func AddCORS(next http.Handler, origin, headers, methods string) http.Handler {
 	})
 }
 
-func encodeJSON(v interface{}) ([]byte, error) {
-	return json.Marshal(v)
-}
-
-func decodeJSON(data []byte, v interface{}) error {
-	return json.Unmarshal(data, &v)
-}
-
 func bodyToByte(body io.Reader) ([]byte, error) {
 
 	b, err := ioutil.ReadAll(body)
@@ -57,7 +49,7 @@ func bodyToByte(body io.Reader) ([]byte, error) {
 }
 
 func bodyToUser(body io.Reader) (*User, error) {
-	dbg.Printf("Body: %v\n", body)
+	// dbg.Printf("Body: %v\n", body)
 
 	b, err := bodyToByte(body)
 	if err != nil {
@@ -70,4 +62,12 @@ func bodyToUser(body io.Reader) (*User, error) {
 	}
 
 	return usr, nil
+}
+
+func encodeJSON(v interface{}) ([]byte, error) {
+	return json.Marshal(v)
+}
+
+func decodeJSON(data []byte, v interface{}) error {
+	return json.Unmarshal(data, &v)
 }

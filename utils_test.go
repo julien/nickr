@@ -36,14 +36,35 @@ func TestAddCORS(t *testing.T) {
 	}
 }
 
+func TestBodyToByte(t *testing.T) {
+
+}
+
 func TestEncodeJSON(t *testing.T) {
 	v := struct {
-		Name string `json:"string"`
+		Name string `json:"name"`
 	}{
 		"tester",
 	}
 
 	if _, err := encodeJSON(v); err != nil {
 		t.Errorf("got %v\n", err)
+	}
+}
+
+func TestDecodeJSON(t *testing.T) {
+	type tester struct {
+		Name string `json:"name"`
+	}
+
+	v := &tester{}
+	b := []byte("{\"name\": \"tester\"}")
+
+	if err := decodeJSON(b, &v); err != nil {
+		t.Errorf("got %v\n", err)
+	}
+
+	if v.Name != "tester" {
+		t.Errorf("expected v.Name to be tester, got %v\n", v.Name)
 	}
 }
