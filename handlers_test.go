@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-func TestHandleRequest1(t *testing.T) {
+func TestGetRoot(t *testing.T) {
 	req, _ := http.NewRequest("GET", "/", nil)
 
 	w := httptest.NewRecorder()
@@ -28,7 +28,7 @@ func TestHandleRequest1(t *testing.T) {
 
 }
 
-func TestHandleRequest2(t *testing.T) {
+func TestGetUsers(t *testing.T) {
 	req, _ := http.NewRequest("GET", "/users", nil)
 
 	w := httptest.NewRecorder()
@@ -53,7 +53,7 @@ func TestHandleRequest2(t *testing.T) {
 
 }
 
-func TestHandleRequest3(t *testing.T) {
+func TestHandleGetUser(t *testing.T) {
 	req, _ := http.NewRequest("GET", "/users/frank", nil)
 
 	w := httptest.NewRecorder()
@@ -70,7 +70,7 @@ func TestHandleRequest3(t *testing.T) {
 
 }
 
-func TestHandleRequest4(t *testing.T) {
+func TestOptions(t *testing.T) {
 	req, _ := http.NewRequest("OPTIONS", "/users/frank", nil)
 
 	w := httptest.NewRecorder()
@@ -83,7 +83,7 @@ func TestHandleRequest4(t *testing.T) {
 
 }
 
-func TestHandleRequest5(t *testing.T) {
+func TestPostOK(t *testing.T) {
 	postData := []byte("{\"name\": \"tester\", \"nicknames\": [{\"value\": \"nickname1\"}]}")
 
 	req, _ := http.NewRequest("POST", "/users", bytes.NewReader(postData))
@@ -94,7 +94,6 @@ func TestHandleRequest5(t *testing.T) {
 
 	ok := w.Code == http.StatusCreated || w.Code == http.StatusBadRequest
 
-	// since the user might exist
 	if !ok {
 		t.Errorf("got %v want 201 or 400", w.Code)
 	}
@@ -104,7 +103,7 @@ func TestHandleRequest5(t *testing.T) {
 	}
 }
 
-func TestHandleRequest6(t *testing.T) {
+func TestPostBadJSON(t *testing.T) {
 
 	postData := []byte("{\"name\": \"\"}")
 
@@ -114,7 +113,6 @@ func TestHandleRequest6(t *testing.T) {
 	h := handleRequest()
 	h.ServeHTTP(w, req)
 
-	// since the user might exist
 	if w.Code != http.StatusBadRequest {
 		t.Errorf("got %v want 400", w.Code)
 	}
@@ -124,7 +122,7 @@ func TestHandleRequest6(t *testing.T) {
 	}
 }
 
-func TestHandleRequest7(t *testing.T) {
+func TestHandlePutRequest(t *testing.T) {
 	postData := []byte("{\"name\": \"tester\", \"nicknames\": [{\"value\": \"nickname1\"}]}")
 
 	req, _ := http.NewRequest("PUT", "/users", bytes.NewReader(postData))
@@ -133,9 +131,8 @@ func TestHandleRequest7(t *testing.T) {
 	h := handleRequest()
 	h.ServeHTTP(w, req)
 
-	ok := w.Code == http.StatusOK || w.Code == http.StatusBadRequest
+	ok := w.Code == http.StatusOK || w.Code == http.StatusBadRequest || w.Code == http.StatusNotFound
 
-	// since the user might exist
 	if !ok {
 		t.Errorf("got %v want 201 or 400", w.Code)
 	}
@@ -144,5 +141,41 @@ func TestHandleRequest7(t *testing.T) {
 
 	if w.Body.String() == "" {
 		t.Errorf("expected a response, got %s\n", w.Body.String())
+	}
+}
+
+func TestHandlePutNotFoundRequest(t *testing.T) {
+	postData := []byte("{\"name\": \"T\"}")
+
+	req, _ := http.NewRequest("PUT", "/users", bytes.NewReader(postData))
+
+	w := httptest.NewRecorder()
+	h := handleRequest()
+	h.ServeHTTP(w, req)
+
+	if w.Code != http.StatusNotFound {
+		t.Errorf("got %v want 404", w.Code)
+	}
+
+	t.Logf("%s\n", w.Body.String())
+
+	if w.Body.String() == "" {
+		t.Errorf("expected a response, got %s\n", w.Body.String())
+	}
+}
+
+func TestHandleDeleteRequest(t *testing.T) {
+	postData := []byte("{\"name\": \"tester\"}")
+
+	req, _ := http.NewRequest("DELETE", "/users", bytes.NewReader(postData))
+
+	w := httptest.NewRecorder()
+	h := handleRequest()
+	h.ServeHTTP(w, req)
+
+	ok := w.Code == http.StatusOK || w.Code == http.StatusBadRequest || w.Code == http.StatusNotFound
+
+	if !ok {
+		t.Errorf("got %v want 200 or 400", w.Code)
 	}
 }
