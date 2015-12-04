@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -80,4 +81,68 @@ func TestHandleRequest4(t *testing.T) {
 		t.Errorf("got %v want 200", w.Code)
 	}
 
+}
+
+func TestHandleRequest5(t *testing.T) {
+	postData := []byte("{\"name\": \"tester\", \"nicknames\": [{\"value\": \"nickname1\"}]}")
+
+	req, _ := http.NewRequest("POST", "/users", bytes.NewReader(postData))
+
+	w := httptest.NewRecorder()
+	h := handleRequest()
+	h.ServeHTTP(w, req)
+
+	ok := w.Code == http.StatusCreated || w.Code == http.StatusBadRequest
+
+	// since the user might exist
+	if !ok {
+		t.Errorf("got %v want 201 or 400", w.Code)
+	}
+
+	if w.Body.String() == "" {
+		t.Errorf("expected a response, got %s\n", w.Body.String())
+	}
+}
+
+func TestHandleRequest6(t *testing.T) {
+
+	postData := []byte("{\"name\": \"\"}")
+
+	req, _ := http.NewRequest("POST", "/users", bytes.NewReader(postData))
+
+	w := httptest.NewRecorder()
+	h := handleRequest()
+	h.ServeHTTP(w, req)
+
+	// since the user might exist
+	if w.Code != http.StatusBadRequest {
+		t.Errorf("got %v want 400", w.Code)
+	}
+
+	if w.Body.String() == "" {
+		t.Errorf("expected a response, got %s\n", w.Body.String())
+	}
+}
+
+func TestHandleRequest7(t *testing.T) {
+	postData := []byte("{\"name\": \"tester\", \"nicknames\": [{\"value\": \"nickname1\"}]}")
+
+	req, _ := http.NewRequest("PUT", "/users", bytes.NewReader(postData))
+
+	w := httptest.NewRecorder()
+	h := handleRequest()
+	h.ServeHTTP(w, req)
+
+	ok := w.Code == http.StatusOK || w.Code == http.StatusBadRequest
+
+	// since the user might exist
+	if !ok {
+		t.Errorf("got %v want 201 or 400", w.Code)
+	}
+
+	t.Logf("%s\n", w.Body.String())
+
+	if w.Body.String() == "" {
+		t.Errorf("expected a response, got %s\n", w.Body.String())
+	}
 }
