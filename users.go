@@ -4,7 +4,7 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/melvinmt/firebase"
+	"github.com/julien/nickr/Godeps/_workspace/src/github.com/melvinmt/firebase"
 )
 
 // Nickname represents a nickname it has a "Value" and a "Picture"
