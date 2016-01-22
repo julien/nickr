@@ -2,14 +2,14 @@ package main
 
 import (
 	"flag"
+	"log"
 	"net/http"
 	"os"
 	"regexp"
 )
 
-const fbURL = "https://nickr.firebaseio.com/users/"
-
 var (
+	fbURL     = os.Getenv("NICKR_FIREBASE_URL")
 	port      = flag.String("port", os.Getenv("PORT"), "http port")
 	users     = NewUsers(fbURL)
 	usersPath = regexp.MustCompile(`(users/?)(\w+)?`)
@@ -23,6 +23,9 @@ type response struct {
 func init() {
 	if *port == "" {
 		*port = "8080"
+	}
+	if fbURL == "" {
+		log.Fatal("make sure the NICKR_FIREBASE_URL environment variable is set")
 	}
 }
 
