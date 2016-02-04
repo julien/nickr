@@ -74,7 +74,7 @@ API
     ```json
     {
       "name": "the users name",
-      "nicknames": [{"value": "the users nickname", "picture": "optional image url"}]
+      "nicknames": ["the users nicknames"]
     }
     ```
 
