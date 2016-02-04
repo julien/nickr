@@ -10,10 +10,10 @@ const fbTestsURL = "https://nickr.firebaseio.com/tests/"
 
 func TestUserHasNickname(t *testing.T) {
 
-	nicknames := []*Nickname{&Nickname{"nickname1", "nickname1.png"}}
+	nicknames := []string{"nickname1"}
 
 	u := &User{"tester", nicknames}
-	b := &Nickname{"foo", "foo.png"}
+	b := "foo"
 
 	if u.HasNickname(b) {
 		t.Errorf("expected false got true")
@@ -34,7 +34,7 @@ func TestAdd(t *testing.T) {
 	// unique name for tester each time this test is run
 	name := fmt.Sprintf("tester-for-add-%d", time.Now().UnixNano())
 
-	nicknames := []*Nickname{&Nickname{"tester", "tester.png"}}
+	nicknames := []string{"tester"}
 	v := &User{name, nicknames}
 
 	if err := u.Add(v); err != nil {
@@ -47,8 +47,7 @@ func TestGet(t *testing.T) {
 
 	u := NewUsers(fbTestsURL + "tests-get/users/")
 
-	var nicknames []*Nickname
-	nicknames = append(nicknames, &Nickname{"tester", "tester.png"})
+	nicknames := []string{"tester"}
 
 	v := &User{"tester", nicknames}
 	// add the user don't care if it errors, we need to Get it later
@@ -73,9 +72,7 @@ func TestGetByName(t *testing.T) {
 
 	u := NewUsers(fbTestsURL + "tests-get-by-name/users/")
 
-	var nicknames []*Nickname
-	nicknames = append(nicknames, &Nickname{"tester", "tester.png"})
-	nicknames = append(nicknames, &Nickname{"Ned Flanders", "ned_flanders.png"})
+	nicknames := []string{"tester", "Ned Flanders"}
 
 	v := &User{"tester", nicknames}
 
@@ -95,9 +92,7 @@ func TestGetByID(t *testing.T) {
 
 	u := NewUsers(fbTestsURL + "tests-get-by-id/users/")
 
-	var nicknames []*Nickname
-	nicknames = append(nicknames, &Nickname{"tester", "tester.png"})
-	nicknames = append(nicknames, &Nickname{"Ned Flanders", "ned_flanders.png"})
+	nicknames := []string{"tester", "Ned Flanders"}
 
 	v := &User{"tester", nicknames}
 
@@ -145,7 +140,7 @@ func TestGetByID(t *testing.T) {
 func TestAddExisting(t *testing.T) {
 	u := NewUsers(fbTestsURL + "tests-add/existing/users/")
 
-	nicknames := []*Nickname{&Nickname{"tester", "tester.png"}}
+	nicknames := []string{"tester", "Ned Flanders"}
 	v := &User{"tester", nicknames}
 	// add a user
 	u.Add(v)
@@ -165,9 +160,7 @@ func TestDelete1(t *testing.T) {
 
 	u := NewUsers(fbTestsURL + "tests-delete-1/users/")
 
-	var nicknames []*Nickname
-	nicknames = append(nicknames, &Nickname{"tester", "tester.png"})
-	nicknames = append(nicknames, &Nickname{"Ned Flanders", "ned_flanders.png"})
+	nicknames := []string{"tester", "Ned Flanders"}
 
 	v := &User{"tester", nicknames}
 	// add the user don't care if it errors, we need to Get it later
@@ -188,7 +181,7 @@ func TestDelete2(t *testing.T) {
 	u := NewUsers("")
 
 	if err := u.Delete(""); err == nil {
-		t.Errorf("expected an error%v\n")
+		t.Errorf("expected an error\n")
 	}
 
 }
@@ -198,7 +191,7 @@ func TestDelete3(t *testing.T) {
 	u := NewUsers(fbTestsURL + "tests-delete-3/users/")
 
 	if err := u.Delete("tester"); err == nil {
-		t.Errorf("expected an error%v\n")
+		t.Errorf("expected an error\n")
 	}
 
 }

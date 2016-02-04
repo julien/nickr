@@ -84,7 +84,7 @@ func TestOptions(t *testing.T) {
 }
 
 func TestPostOK(t *testing.T) {
-	postData := []byte("{\"name\": \"tester\", \"nicknames\": [{\"value\": \"nickname1\"}]}")
+	postData := []byte("{\"name\": \"tester\", \"nicknames\": [\"nickname1\"]}")
 
 	req, _ := http.NewRequest("POST", "/users", bytes.NewReader(postData))
 
@@ -123,7 +123,7 @@ func TestPostBadJSON(t *testing.T) {
 }
 
 func TestHandlePutRequest(t *testing.T) {
-	postData := []byte("{\"name\": \"tester\", \"nicknames\": [{\"value\": \"nickname1\"}]}")
+	postData := []byte("{\"name\": \"tester\", \"nicknames\": [\"nickname1\"]}")
 
 	req, _ := http.NewRequest("PUT", "/users", bytes.NewReader(postData))
 

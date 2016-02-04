@@ -8,21 +8,22 @@ import (
 )
 
 // Nickname represents a nickname it has a "Value" and a "Picture"
-type Nickname struct {
-	Value   string `json:"value"`
-	Picture string `json:"picture,omitempty"`
-}
+// type Nickname struct {
+// 	Value   string `json:"value"`
+// 	Picture string `json:"picture,omitempty"`
+// }
 
 // User is the main data model.
 type User struct {
-	Name      string      `json:"name"`
-	Nicknames []*Nickname `json:"nicknames"`
+	Name      string   `json:"name"`
+	Nicknames []string `json:"nicknames"`
+	// Nicknames []*Nickname `json:"nicknames"`
 }
 
 // HasNickname returns a boolean indicating if a User has a nickname or not.
-func (u *User) HasNickname(nick *Nickname) bool {
+func (u *User) HasNickname(nick string) bool {
 	for _, v := range u.Nicknames {
-		if strings.ToLower(v.Value) == strings.ToLower(nick.Value) && strings.ToLower(v.Picture) == strings.ToLower(nick.Picture) {
+		if strings.ToLower(v) == strings.ToLower(nick) {
 			return true
 		}
 	}
@@ -141,10 +142,6 @@ func (u *Users) Update(id string, v *User) (*User, error) {
 			}
 
 		}
-
-		// if v.Picture != "" && usr.Picture != v.Picture {
-		// 	usr.Picture = v.Picture
-		// }
 
 		ref := firebase.NewReference(u.fbURL + id)
 
