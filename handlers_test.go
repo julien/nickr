@@ -18,12 +18,8 @@ func TestGetRoot(t *testing.T) {
 		t.Errorf("expected a body\n")
 	}
 
-	if w.Body.String() != "nickr" {
-		t.Errorf("expected the body to be nickr\n")
-	}
-
-	if w.Code != http.StatusOK {
-		t.Errorf("got %v want 200", w.Code)
+	if w.Code != http.StatusNotFound {
+		t.Errorf("got %v want 404", w.Code)
 	}
 
 }

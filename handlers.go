@@ -1,87 +1,119 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
+
+	"github.com/dgrijalva/jwt-go"
+	"github.com/markbates/goth/gothic"
 )
 
-func handleRequest() http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-
-		path := r.URL.Path[1:]
-		matches := usersPath.FindAllStringSubmatch(path, -1)
-
-		// if we don't match anything render static content
-		if len(matches) == 0 {
-			fmt.Fprintf(w, "nickr")
-			return
-		}
-
-		if len(matches) > 0 {
-			submatches := matches[0]
-			if len(submatches) == 3 {
-				if r.Method == "GET" {
-					handleGet(w, submatches)
-				} else {
-					if r.Method == "OPTIONS" {
-						return
-					}
-
-					usr, err := bodyToUser(r.Body)
-					if err != nil {
-						fmt.Printf("Body error: %v\n", err)
-					}
-
-					switch r.Method {
-					case "POST":
-						handlePost(w, usr)
-					case "PUT":
-						handlePut(w, usr)
-					case "DELETE":
-						handleDelete(w, usr)
-					default:
-						handleNotFound(w, "user not found")
-					}
-				}
-			}
-		}
-	})
+func corsHandler(next http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Headers", "X-Requested-With")
+		w.Header().Set("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE")
+		next(w, r)
+	}
 }
 
-func handleGet(w http.ResponseWriter, submatches []string) {
-
-	if submatches[2] != "" {
-		// we have a name
-		fmt.Printf("submatch: %s\n", submatches[2])
-
-		usr, err := users.GetByName(submatches[2])
+func authCallbackHandler(privateKey []byte) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		_, err := gothic.CompleteUserAuth(w, r)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
 
-		if usr != nil {
-			handleUser(w, usr)
-		} else {
-			handleNotFound(w, "user not found")
+		token := jwt.New(jwt.GetSigningMethod("RS256"))
+		str, _ := token.SignedString(privateKey)
+
+		var data = struct {
+			Token string `json:"token"`
+		}{
+			str,
 		}
-	} else {
-		// render all users
-		all, err := users.All()
+		b, err := json.Marshal(data)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-		b, err := encodeJSON(all)
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
+			fmt.Printf("error: %s\n", err)
 			return
 		}
 
 		w.Header().Set("Content-type", "application/json")
+		w.WriteHeader(http.StatusOK)
 		w.Write(b)
+	}
+}
+
+func authCheckHandler(publicKey []byte, next http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		token, err := jwt.ParseFromRequest(r, func(token *jwt.Token) (interface{}, error) {
+			return publicKey, nil
+		})
+		if err == nil && token.Valid {
+			next(w, r)
+		} else {
+			w.WriteHeader(http.StatusUnauthorized)
+		}
+	}
+}
+
+func getUsersHandler(w http.ResponseWriter, r *http.Request) {
+	all, err := users.All()
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+	b, err := encodeJSON(all)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-type", "application/json")
+	w.Write(b)
+}
+
+func getUserHandler(w http.ResponseWriter, r *http.Request) {
+	usr, err := users.GetByName(r.URL.Query().Get(":name"))
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	if usr != nil {
+		handleUser(w, usr)
+	} else {
+		handleNotFound(w, "user not found")
+	}
+}
+
+func postUserHandler(w http.ResponseWriter, r *http.Request) {
+	usr, err := bodyToUser(r.Body)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	handlePost(w, usr)
+}
+
+func putUserHandler(w http.ResponseWriter, r *http.Request) {
+	usr, err := bodyToUser(r.Body)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	handlePut(w, usr)
+}
+
+func deleteUserHandler(w http.ResponseWriter, r *http.Request) {
+	usr, err := bodyToUser(r.Body)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	handleDelete(w, usr)
 }
 
 func handleUser(w http.ResponseWriter, usr *User) {
