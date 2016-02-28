@@ -1,4 +1,5 @@
 .DS_Store
 *.cov
-main
+*.json
+keys
 nickr
