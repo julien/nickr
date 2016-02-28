@@ -4,20 +4,13 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/julien/nickr/Godeps/_workspace/src/github.com/melvinmt/firebase"
+	"github.com/melvinmt/firebase"
 )
-
-// Nickname represents a nickname it has a "Value" and a "Picture"
-// type Nickname struct {
-// 	Value   string `json:"value"`
-// 	Picture string `json:"picture,omitempty"`
-// }
 
 // User is the main data model.
 type User struct {
 	Name      string   `json:"name"`
 	Nicknames []string `json:"nicknames"`
-	// Nicknames []*Nickname `json:"nicknames"`
 }
 
 // HasNickname returns a boolean indicating if a User has a nickname or not.
