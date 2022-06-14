@@ -39,7 +39,7 @@ Development
 
     If you want to generate test coverage output, use:
 
-    ````shell
+    ```shell
     go test -coverprofile=out.cov ./...
     ```
 
@@ -51,7 +51,7 @@ Development
 
   + If add new files don't forget to run
 
-    ````shell
+    ```shell
     godep save -r ./...
     ```
 
